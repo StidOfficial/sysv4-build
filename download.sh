@@ -1,0 +1,12 @@
+#!/bin/sh
+archive_url="https://winworldpc.com/download/4061c39c-c39b-18c3-9a11-c3a4e284a2ef/from/c3ae6ee2-8099-713d-3411-c3a6e280947e"
+archive_filename="AT&T UNIX System V Release 4 Version 2.1 (3.5).7z"
+
+intel_archive_url="https://archive.org/download/intel-unix-sv-r4-v2/Intel%20Unix%20SVR4V2%20%285.25%20Floppy%29.zip"
+intel_archive_name="Intel Unix SVR4V2 (5.25 Floppy)"
+
+curl -L $archive_url -o "$archive_filename"
+7z x "$archive_filename"
+
+curl -L $intel_archive_url -o "$intel_archive_name.zip"
+unzip "$intel_archive_name.zip" -d "$intel_archive_name"
