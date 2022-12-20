@@ -1,32 +1,9 @@
 #!/usr/bin/python3
-import os
 import shutil
 import sys
 import time
 import pexpect
-
-def create_fifo(path):
-	try:
-		os.mkfifo(path)
-	except FileExistsError:
-		pass
-
-def create_disk(filename):
-	if os.path.exists(filename):
-		os.remove(filename)
-
-	os.system(f"qemu-img create -f qcow2 {filename} 496M")
-
-def send_monitor(command):
-	with open("/tmp/guest.in", "w") as f:
-		f.write(f"{command}\n")
-
-def change_floppy(path):
-	send_monitor(f"change floppy0 \"{path}\" raw")
-
-def wait():
-	print("Please type enter to continue...")
-	input()
+from shared import *
 
 def reboot(child):
 	child.expect("Reboot the system now.")
@@ -42,7 +19,6 @@ def password(child):
 def install_package(child, path):
 	child.expect("Type \[go\] when ready,")
 	change_floppy(path)
-	time.sleep(2)
 
 	child.sendline("go")
 
@@ -59,7 +35,8 @@ for type in ["in", "out"]:
 create_disk(DISK_PATH)
 
 child = pexpect.spawn(f"qemu-system-i386 -m 192 -fda \"{FLOPPIES_DIR}/Base 01 (2.1a).img\" \
-			-hda {DISK_PATH} -monitor pipe:{MONITOR_PIPE_PATH} -display curses")
+			-hda {DISK_PATH} -monitor pipe:{MONITOR_PIPE_PATH} -display curses",
+			timeout=100)
 child.logfile = sys.stdout.buffer
 
 child.expect("Floppy Disk 2 and then strike ENTER.")
@@ -112,13 +89,12 @@ child.sendline("F")
 
 for i in range(3, 11):
 	child.expect("Please insert the UNIX System \"Base System Package\"")
+	# Too fast some times, need to wait
+	time.sleep(5)
 
 	change_floppy(f"{FLOPPIES_DIR}/Base {i:02}.img")
-	time.sleep(2)
 
 	child.sendline()
-
-	time.sleep(10)
 
 password(child)
 password(child)
@@ -129,7 +105,6 @@ child.sendline("VM")
 
 child.expect("Strike ENTER when ready.")
 change_floppy(f"{FLOPPIES_DIR}/Maintenance 1.img")
-time.sleep(2)
 
 child.sendline()
 
@@ -181,13 +156,11 @@ time.sleep(2)
 
 child.expect("Type \[go\] when ready,")
 change_floppy(f"{FLOPPIES_DIR}/OA&M Basic & Ext. 2.img")
-time.sleep(2)
 
 child.sendline("go")
 
 child.expect("Type \[go\] when ready,")
 change_floppy(f"{FLOPPIES_DIR}/OA&M Basic & Ext. 3.img")
-time.sleep(2)
 
 child.sendline("go")
 

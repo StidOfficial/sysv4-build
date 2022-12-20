@@ -3,23 +3,7 @@ import os
 import sys
 import time
 import pexpect
-
-def create_fifo(path):
-	try:
-		os.mkfifo(path)
-	except FileExistsError:
-		pass
-
-def send_monitor(command):
-	with open("/tmp/guest.in", "w") as f:
-		f.write(f"{command}\n")
-
-def change_floppy(path):
-	send_monitor(f"change floppy0 \"{path}\" raw")
-
-def wait():
-	print("Please type enter to continue...")
-	input()
+from shared import *
 
 def reboot(child):
 	child.expect("Reboot the system now.")
@@ -37,11 +21,15 @@ def login(child):
 
 	child.expect("you have mail")
 
-create_fifo("/tmp/guest.in")
-create_fifo("/tmp/guest.out")
-create_fifo("/tmp/test")
+DISK_PATH="/tmp/sysv.qcow2"
+MONITOR_PIPE_PATH="/tmp/guest"
 
-child = pexpect.spawn("qemu-system-i386 -m 192 -fda xaa -hda /tmp/primary.qcow2 -monitor pipe:/tmp/guest -display curses", encoding="utf-8")
+for type in ["in", "out"]:
+	create_fifo(f"{MONITOR_PIPE_PATH}.{type}")
+
+child = pexpect.spawn(f"qemu-system-i386 -m 192 -fda src/xaa -hda {DISK_PATH} \
+			-monitor pipe:{MONITOR_PIPE_PATH} -display curses",
+			encoding="utf-8", timeout=100)
 child.logfile = sys.stdout
 
 login(child)
@@ -80,23 +68,27 @@ reboot(child)
 
 login(child)
 
-for file in sorted(os.listdir()):
+for file in sorted(os.listdir("src/")):
+	file_path=f"src/{file}"
+
 	if file.startswith("xa"):
-		change_floppy(file)
+		change_floppy(file_path)
 
 		ibs=4096
+		file_size=os.path.getsize(file_path)
 
-		if os.path.getsize(file) < 1474560:
+		if file_size < 1474560:
 			ibs=1
 
-		child.sendline(f"dd if=/dev/rdsk/f0t of=/dev/{file} ibs={ibs} count={os.path.getsize(file)}")
+		child.sendline(f"dd if=/dev/rdsk/f0t of=/dev/{file_path} ibs={ibs} count={file_size}")
 
-		child.expect("records out", timeout=100)
+		child.expect("records out")
 
 child.sendline("cat /dev/xa? > sysvr4.tar.Z")
-time.sleep(5)
+time.sleep(10)
 
 child.sendline("uncompress sysvr4.tar.Z")
+time.sleep(10)
 
 child.sendline("cd /; shutdown -g0 -y")
 
@@ -104,8 +96,3 @@ child.expect("Reboot the system now.")
 send_monitor("quit")
 
 child.wait()
-
-child.logfile = None
-
-print("Switch to interect mode")
-child.interact()
