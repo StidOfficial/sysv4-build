@@ -4,3 +4,4 @@ Intel Unix SVR4V2 (5.25 Floppy)
 *.7z
 *.zip
 sysv.qcow2
+sysvr4.tar.*

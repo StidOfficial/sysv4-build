@@ -5,11 +5,6 @@ import time
 import pexpect
 from shared import *
 
-def reboot(child):
-	child.expect("Reboot the system now.")
-	send_monitor("eject floppy0")
-	send_monitor("system_reset")
-
 def password(child):
 	child.expect("Enter a password for the")
 	child.sendline()

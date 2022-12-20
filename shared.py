@@ -24,3 +24,8 @@ def change_floppy(path):
 def wait():
 	print("Please type enter to continue...")
 	input()
+
+def reboot(child):
+	child.expect("Reboot the system now.")
+	send_monitor("eject floppy0")
+	send_monitor("system_reset")

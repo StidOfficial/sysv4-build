@@ -1,14 +1,10 @@
 #!/usr/bin/python3
 import os
+import shutil
 import sys
 import time
 import pexpect
 from shared import *
-
-def reboot(child):
-	child.expect("Reboot the system now.")
-	send_monitor("eject floppy0")
-	send_monitor("system_reset")
 
 def login(child):
 	child.expect("Console Login:")
@@ -80,7 +76,7 @@ for file in sorted(os.listdir("src/")):
 		if file_size < 1474560:
 			ibs=1
 
-		child.sendline(f"dd if=/dev/rdsk/f0t of=/dev/{file_path} ibs={ibs} count={file_size}")
+		child.sendline(f"dd if=/dev/rdsk/f0t of=/dev/{file} ibs={ibs} count={file_size}")
 
 		child.expect("records out")
 
@@ -96,3 +92,5 @@ child.expect("Reboot the system now.")
 send_monitor("quit")
 
 child.wait()
+
+shutil.move(DISK_PATH, ".")
