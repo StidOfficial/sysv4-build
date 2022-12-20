@@ -11,15 +11,6 @@ def password(child):
 	child.expect("New password:")
 	child.sendline()
 
-def install_package(child, path):
-	child.expect("Type \[go\] when ready,")
-	change_floppy(path)
-
-	child.sendline("go")
-
-	child.expect("Select package\(s\) you wish to process")
-	child.sendline("")
-
 FLOPPIES_DIR="AT&T UNIX System V Release 4 Version 2.1 (3½)"
 DISK_PATH="/tmp/sysv.qcow2"
 MONITOR_PIPE_PATH="/tmp/guest"
@@ -31,7 +22,7 @@ create_disk(DISK_PATH)
 
 child = pexpect.spawn(f"qemu-system-i386 -m 192 -fda \"{FLOPPIES_DIR}/Base 01 (2.1a).img\" \
 			-hda {DISK_PATH} -monitor pipe:{MONITOR_PIPE_PATH} -display curses",
-			timeout=100)
+			timeout=200)
 child.logfile = sys.stdout.buffer
 
 child.expect("Floppy Disk 2 and then strike ENTER.")
@@ -149,15 +140,8 @@ child.sendline("")
 child.sendline("")
 time.sleep(2)
 
-child.expect("Type \[go\] when ready,")
-change_floppy(f"{FLOPPIES_DIR}/OA&M Basic & Ext. 2.img")
-
-child.sendline("go")
-
-child.expect("Type \[go\] when ready,")
-change_floppy(f"{FLOPPIES_DIR}/OA&M Basic & Ext. 3.img")
-
-child.sendline("go")
+install_next_package(child, f"{FLOPPIES_DIR}/OA&M Basic & Ext. 2.img")
+install_next_package(child, f"{FLOPPIES_DIR}/OA&M Basic & Ext. 3.img")
 
 install_package(child, f"{FLOPPIES_DIR}/FACE Package.img")
 

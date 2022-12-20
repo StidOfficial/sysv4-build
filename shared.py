@@ -29,3 +29,15 @@ def reboot(child):
 	child.expect("Reboot the system now.")
 	send_monitor("eject floppy0")
 	send_monitor("system_reset")
+
+def install_next_package(child, path):
+	child.expect("Type \[go\] when ready,")
+	change_floppy(path)
+
+	child.sendline("go")
+
+def install_package(child, path):
+	install_next_package(child, path)
+
+	child.expect("Select package\(s\) you wish to process")
+	child.sendline("")

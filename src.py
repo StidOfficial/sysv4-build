@@ -19,6 +19,7 @@ def login(child):
 
 DISK_PATH="/tmp/sysv.qcow2"
 MONITOR_PIPE_PATH="/tmp/guest"
+FLOPPIES_DIR="Intel Unix SVR4V2 (5.25 Floppy)"
 
 for type in ["in", "out"]:
 	create_fifo(f"{MONITOR_PIPE_PATH}.{type}")
@@ -64,6 +65,15 @@ reboot(child)
 
 login(child)
 
+child.sendline("pkgadd -d diskette1")
+
+install_package(child, f"{FLOPPIES_DIR}/Intel Unix System V R4.0 V2.0 - Disk 43 - Development Set - scde - C Development Environment - Disk 1 of 3.img")
+install_next_package(child, f"{FLOPPIES_DIR}/Intel Unix System V R4.0 V2.0 - Disk 44 - Development Set - scde - C Development Environment - Disk 2 of 3.img")
+install_next_package(child, f"{FLOPPIES_DIR}/Intel Unix System V R4.0 V2.0 - Disk 45 - Development Set - scde - C Development Environment - Disk 3 of 3.img")
+
+child.expect("Type \[go\] when ready,")
+child.sendline("q")
+
 for file in sorted(os.listdir("src/")):
 	file_path=f"src/{file}"
 
@@ -84,6 +94,21 @@ child.sendline("cat /dev/xa? > sysvr4.tar.Z")
 time.sleep(10)
 
 child.sendline("uncompress sysvr4.tar.Z")
+time.sleep(10)
+
+child.sendline("ROOT=/usr/src386; export ROOT")
+time.sleep(10)
+
+child.sendline("mkdir $ROOT; cd $ROOT")
+time.sleep(10)
+
+child.sendline("mkdir usr; cd usr")
+time.sleep(10)
+
+child.sendline("tar xf /sysvr4.tar")
+time.sleep(10)
+
+child.sendline("mv svr4 src")
 time.sleep(10)
 
 child.sendline("cd /; shutdown -g0 -y")
