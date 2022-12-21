@@ -40,4 +40,4 @@ send_monitor("quit")
 
 child.wait()
 
-shutil.move(DISK_PATH, ".")
+shutil.copy(DISK_PATH, ".")
