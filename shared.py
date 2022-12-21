@@ -25,6 +25,10 @@ def wait():
 	print("Please type enter to continue...")
 	input()
 
+def shutdown(child):
+	child.sendline("cd /; shutdown -g0 -y")
+	child.expect("Reboot the system now.")
+
 def reboot(child):
 	child.expect("Reboot the system now.")
 	send_monitor("eject floppy0")
@@ -41,3 +45,7 @@ def install_package(child, path):
 
 	child.expect("Select package\(s\) you wish to process")
 	child.sendline("")
+
+def run_command(child, line):
+	child.sendline(f"{line}; echo exit:$?")
+	child.expect("exit:0")

@@ -31,32 +31,19 @@ child.logfile = sys.stdout
 
 login(child)
 
-child.sendline("/etc/conf/bin/idtune NINODE 1300")
-time.sleep(2)
-
-child.sendline("/etc/conf/bin/idtune NS5INODE 1300")
-time.sleep(2)
-
-child.sendline("/etc/conf/bin/idtune UFSNINODE 1300")
-time.sleep(2)
-
-child.sendline("/etc/conf/bin/idtune SFSZLIM 0x7FFFFFFF")
-time.sleep(2)
-
-child.sendline("/etc/conf/bin/idtune HFSZLIM 0x7FFFFFFF")
-time.sleep(2)
+run_command(child, "/etc/conf/bin/idtune NINODE 1300")
+run_command(child, "/etc/conf/bin/idtune NS5INODE 1300")
+run_command(child, "/etc/conf/bin/idtune UFSNINODE 1300")
+run_command(child, "/etc/conf/bin/idtune SFSZLIM 0x7FFFFFFF")
+run_command(child, "/etc/conf/bin/idtune HFSZLIM 0x7FFFFFFF")
 
 child.sendline("/etc/conf/bin/idbuild")
 child.expect("The UNIX Kernel has been rebuilt.")
 
-child.sendline("sed \"/ULIMIT/d\" /etc/default/login > /etc/default/login.new")
-time.sleep(2)
-
-child.sendline("mv /etc/default/login.new /etc/default/login")
-time.sleep(2)
+run_command(child, "sed \"/ULIMIT/d\" /etc/default/login > /etc/default/login.new")
+run_command(child, "mv /etc/default/login.new /etc/default/login")
 
 child.sendline("/etc/conf/bin/idreboot")
-time.sleep(2)
 
 child.expect("Strike ENTER when ready")
 child.sendline()
@@ -86,36 +73,21 @@ for file in sorted(os.listdir("src/")):
 		if file_size < 1474560:
 			ibs=1
 
-		child.sendline(f"dd if=/dev/rdsk/f0t of=/dev/{file} ibs={ibs} count={file_size}")
+		run_command(child, f"dd if=/dev/rdsk/f0t of=/tmp/{file} ibs={ibs} count={file_size}")
 
-		child.expect("records out")
+run_command(child, "cat /tmp/xa? > /tmp/sysvr4.tar.Z")
+run_command(child, "uncompress /tmp/sysvr4.tar.Z")
+run_command(child, "ROOT=/usr/src386; export ROOT")
+run_command(child, "mkdir $ROOT; cd $ROOT")
+run_command(child, "mkdir usr; cd usr")
+child.sendline(f"tar xf /tmp/sysvr4.tar; echo exit:$?")
+child.expect("exit:")
+run_command(child, "mv svr4 src")
 
-child.sendline("cat /dev/xa? > sysvr4.tar.Z")
-time.sleep(10)
+shutdown(child)
 
-child.sendline("uncompress sysvr4.tar.Z")
-time.sleep(10)
-
-child.sendline("ROOT=/usr/src386; export ROOT")
-time.sleep(10)
-
-child.sendline("mkdir $ROOT; cd $ROOT")
-time.sleep(10)
-
-child.sendline("mkdir usr; cd usr")
-time.sleep(10)
-
-child.sendline("tar xf /sysvr4.tar")
-time.sleep(10)
-
-child.sendline("mv svr4 src")
-time.sleep(10)
-
-child.sendline("cd /; shutdown -g0 -y")
-
-child.expect("Reboot the system now.")
 send_monitor("quit")
 
 child.wait()
 
-shutil.move(DISK_PATH, ".")
+shutil.copy(DISK_PATH, ".")

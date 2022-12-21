@@ -147,11 +147,10 @@ install_package(child, f"{FLOPPIES_DIR}/FACE Package.img")
 
 child.sendline("q")
 
-child.sendline("shutdown -g0 -y")
+shutdown(child)
 
-child.expect("Reboot the system now.")
 send_monitor("quit")
 
 child.wait()
 
-shutil.move(DISK_PATH, ".")
+shutil.copy(DISK_PATH, ".")

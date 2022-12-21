@@ -30,16 +30,12 @@ child.logfile = sys.stdout
 
 login(child)
 
-child.sendline("echo \"s1:12345:respawn:/etc/getty tty00 9600 none LDISC0\" >> /etc/inittab")
-time.sleep(10)
+run_command(child, "echo \"s1:12345:respawn:/etc/getty tty00 9600 none LDISC0\" >> /etc/inittab")
+run_command(child, "sed \"s/console/tty00/g\" /etc/default/login > /etc/default/login.bak")
+run_command(child, "mv /etc/default/login.bak /etc/default/login")
 
-child.sendline("sed \"s/console/tty00/g\" /etc/default/login > /etc/default/login.bak")
-child.sendline("mv /etc/default/login.bak /etc/default/login")
-time.sleep(10)
+shutdown(child)
 
-child.sendline("cd /; shutdown -g0 -y")
-
-child.expect("Reboot the system now.")
 send_monitor("quit")
 
 child.wait()
