@@ -75,12 +75,11 @@ for file in sorted(os.listdir("src/")):
 
 		run_command(child, f"dd if=/dev/rdsk/f0t of=/tmp/{file} ibs={ibs} count={file_size}")
 
-run_command(child, "cat /tmp/xa? > /tmp/sysvr4.tar.Z")
-run_command(child, "uncompress /tmp/sysvr4.tar.Z")
+run_command(child, "cat /tmp/xa? > /sysvr4.tar.Z")
+run_command(child, "uncompress /sysvr4.tar.Z")
 run_command(child, "ROOT=/usr/src386; export ROOT")
-run_command(child, "mkdir $ROOT; cd $ROOT")
-run_command(child, "mkdir usr; cd usr")
-child.sendline(f"tar xf /tmp/sysvr4.tar; echo exit:$?")
+run_command(child, "mkdir -p $ROOT/usr; cd $ROOT/usr")
+child.sendline(f"tar xf /sysvr4.tar; echo exit:$?")
 child.expect("exit:")
 run_command(child, "mv svr4 src")
 

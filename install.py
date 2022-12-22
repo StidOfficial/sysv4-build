@@ -145,6 +145,7 @@ install_next_package(child, f"{FLOPPIES_DIR}/OA&M Basic & Ext. 3.img")
 
 install_package(child, f"{FLOPPIES_DIR}/FACE Package.img")
 
+child.expect("Type \[go\] when ready,")
 child.sendline("q")
 
 shutdown(child)
